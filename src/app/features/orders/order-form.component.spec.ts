@@ -160,7 +160,7 @@ describe('OrderFormComponent', () => {
         items: [{ productId: 1, productName: 'Chocolate', quantity: 2, unitPrice: 150 }],
       }),
     );
-    expect(router.navigate).toHaveBeenCalledWith(['/orders']);
+    expect(router.navigate).toHaveBeenCalledWith(['/pedidos']);
   });
 
   it('saves a new order with a new client', () => {
@@ -221,7 +221,7 @@ describe('OrderFormComponent', () => {
       5,
       expect.objectContaining({ deliveryDate: expect.any(String) }),
     );
-    expect(router.navigate).toHaveBeenCalledWith(['/orders']);
+    expect(router.navigate).toHaveBeenCalledWith(['/pedidos']);
   });
 
   it('does not save an invalid form', () => {

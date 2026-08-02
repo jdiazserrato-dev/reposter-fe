@@ -229,9 +229,9 @@ export class OrderFormComponent implements OnInit {
       body['client'] = { name: value.clientName, phone: value.clientPhone };
     }
     if (this.id) {
-      this.ordersService.update(this.id, body).subscribe(() => this.router.navigate(['/orders']));
+       this.ordersService.update(this.id, body).subscribe(() => this.router.navigate(['/pedidos']));
     } else {
-      this.ordersService.create(body).subscribe(() => this.router.navigate(['/orders']));
+       this.ordersService.create(body).subscribe(() => this.router.navigate(['/pedidos']));
     }
   }
 }
