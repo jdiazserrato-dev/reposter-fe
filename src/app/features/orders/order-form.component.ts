@@ -180,12 +180,12 @@ export class OrderFormComponent implements OnInit {
     this.items.removeAt(index);
   }
 
-  onProduct(event: Event, index: number): void {
-    const productId = Number((event.target as HTMLSelectElement).value);
+  onProduct(_event: Event, index: number): void {
+    const productId = this.items.at(index).get('productId')?.value;
     const product = this.products().find((p) => p.id === productId);
     this.items.at(index).patchValue({
       productName: product?.name ?? '',
-      unitPrice: product?.basePrice ?? 0,
+      unitPrice: Number(product?.basePrice ?? 0),
     });
   }
 

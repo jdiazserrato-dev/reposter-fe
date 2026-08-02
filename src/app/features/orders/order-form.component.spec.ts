@@ -46,6 +46,11 @@ describe('OrderFormComponent', () => {
     fixture.detectChanges();
   }
 
+  function selectFirstProduct(): void {
+    component.items.at(0).patchValue({ productId: 1 });
+    component.onProduct({} as Event, 0);
+  }
+
   beforeEach(async () => {
     route = { snapshot: { params: {} } };
     ordersService = { findOne: vi.fn(), create: vi.fn(), update: vi.fn() };
@@ -96,9 +101,22 @@ describe('OrderFormComponent', () => {
 
   it('onProduct fills name and price from the catalog', () => {
     createFixture();
-    component.onProduct({ target: { value: '1' } } as unknown as Event, 0);
+    component.items.at(0).patchValue({ productId: 1 });
+    component.onProduct({} as Event, 0);
     expect(component.items.at(0).get('productName')?.value).toBe('Chocolate');
     expect(component.items.at(0).get('unitPrice')?.value).toBe(150);
+  });
+
+  it('onProduct converts a string basePrice to a number', () => {
+    createFixture();
+    const products = component
+      .products()
+      .map((p) => (p.id === 2 ? { ...p, basePrice: '200.00' as unknown as number } : p));
+    component.products.set(products);
+    component.items.at(0).patchValue({ productId: 2 });
+    component.onProduct({} as Event, 0);
+    expect(component.items.at(0).get('productName')?.value).toBe('Vainilla');
+    expect(component.items.at(0).get('unitPrice')?.value).toBe(200);
   });
 
   it('handles the product change listener', () => {
