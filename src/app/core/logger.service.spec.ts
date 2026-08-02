@@ -1,4 +1,10 @@
-import { LoggerService, LogLevel } from './logger.service';
+import { TestBed } from '@angular/core/testing';
+import {
+  LoggerService,
+  LogLevel,
+  LOGGER_SINK,
+  LOGGER_MIN_LEVEL,
+} from './logger.service';
 
 describe('LoggerService', () => {
   type MockFn = (...args: unknown[]) => void;
@@ -19,23 +25,31 @@ describe('LoggerService', () => {
     };
   });
 
+  const makeLogger = (minLevel: LogLevel = LogLevel.debug): LoggerService => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: LOGGER_SINK, useValue: sink },
+        { provide: LOGGER_MIN_LEVEL, useValue: minLevel },
+      ],
+    });
+    return TestBed.inject(LoggerService);
+  };
+
   it('calls the sink method matching the level', () => {
-    const logger = new LoggerService(sink, LogLevel.debug);
-    logger.error('boom');
+    makeLogger().error('boom');
     expect(sink.error).toHaveBeenCalled();
   });
 
   it('prefixes the message with level and timestamp', () => {
-    const logger = new LoggerService(sink, LogLevel.debug);
-    logger.info('hola');
+    makeLogger().info('hola');
     expect(sink.info).toHaveBeenCalledWith(
       expect.stringMatching(/\[[0-9T:.Z-]+\] \[INFO\] hola/),
     );
   });
 
   it('forwards extra data alongside the message', () => {
-    const logger = new LoggerService(sink, LogLevel.debug);
-    logger.warn('cuidado', { a: 1 });
+    makeLogger().warn('cuidado', { a: 1 });
     expect(sink.warn).toHaveBeenCalledWith(
       expect.stringMatching(/\[WARN\] cuidado/),
       { a: 1 },
@@ -43,7 +57,7 @@ describe('LoggerService', () => {
   });
 
   it('drops messages below the minimum level', () => {
-    const logger = new LoggerService(sink, LogLevel.error);
+    const logger = makeLogger(LogLevel.error);
     logger.debug('a');
     logger.info('b');
     logger.warn('c');
@@ -53,7 +67,11 @@ describe('LoggerService', () => {
   });
 
   it('defaults to debug level so debug logs are emitted', () => {
-    const logger = new LoggerService(sink);
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [{ provide: LOGGER_SINK, useValue: sink }],
+    });
+    const logger = TestBed.inject(LoggerService);
     logger.debug('x');
     expect(sink.debug).toHaveBeenCalled();
   });

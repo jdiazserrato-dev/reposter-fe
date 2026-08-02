@@ -45,16 +45,22 @@
 - Produces:
   - `enum LogLevel { debug = 0, info = 1, warn = 2, error = 3 }`
   - `interface ConsoleLike { debug(...args: unknown[]): void; info(...args: unknown[]): void; warn(...args: unknown[]): void; error(...args: unknown[]): void; }`
-  - Tokens `LOGGER_SINK: InjectionToken<ConsoleLike>` y `LOGGER_MIN_LEVEL: InjectionToken<LogLevel>`
-  - `class LoggerService` con constructor `constructor(@Inject(LOGGER_SINK) sink: ConsoleLike = console, @Inject(LOGGER_MIN_LEVEL) minLevel: LogLevel = isDevMode() ? LogLevel.debug : LogLevel.warn)` y métodos `debug(message: string, ...data: unknown[]): void`, `info(...)`, `warn(...)`, `error(...)`.
-  - NOTA: el constructor usa `@Inject` con tokens porque `@Injectable` + parámetro de tipo interfaz sin token provoca el error de compilación NG2003 del compilador de Angular.
+  - Tokens con factory por defecto: `LOGGER_SINK: InjectionToken<ConsoleLike>` (default `console`) y `LOGGER_MIN_LEVEL: InjectionToken<LogLevel>` (default `isDevMode() ? LogLevel.debug : LogLevel.warn`)
+  - `class LoggerService` con `private readonly sink = inject(LOGGER_SINK)`, `private readonly minLevel = inject(LOGGER_MIN_LEVEL)` y métodos `debug(message: string, ...data: unknown[]): void`, `info(...)`, `warn(...)`, `error(...)`.
+  - NOTA: se usa `inject()` con tokens (no constructor) porque el compilador de Angular lanza NG2003 con parámetros de tipo interfaz sin token, y `@angular-eslint/prefer-inject` rechaza la inyección por constructor.
 
 - [ ] **Step 1: Write the failing test**
 
 Create `src/app/core/logger.service.spec.ts`:
 
 ```ts
-import { LoggerService, LogLevel } from './logger.service';
+import { TestBed } from '@angular/core/testing';
+import {
+  LoggerService,
+  LogLevel,
+  LOGGER_SINK,
+  LOGGER_MIN_LEVEL,
+} from './logger.service';
 
 describe('LoggerService', () => {
   type MockFn = (...args: unknown[]) => void;
@@ -75,23 +81,31 @@ describe('LoggerService', () => {
     };
   });
 
+  const makeLogger = (minLevel: LogLevel = LogLevel.debug): LoggerService => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: LOGGER_SINK, useValue: sink },
+        { provide: LOGGER_MIN_LEVEL, useValue: minLevel },
+      ],
+    });
+    return TestBed.inject(LoggerService);
+  };
+
   it('calls the sink method matching the level', () => {
-    const logger = new LoggerService(sink, LogLevel.debug);
-    logger.error('boom');
+    makeLogger().error('boom');
     expect(sink.error).toHaveBeenCalled();
   });
 
   it('prefixes the message with level and timestamp', () => {
-    const logger = new LoggerService(sink, LogLevel.debug);
-    logger.info('hola');
+    makeLogger().info('hola');
     expect(sink.info).toHaveBeenCalledWith(
       expect.stringMatching(/\[[0-9T:.Z-]+\] \[INFO\] hola/),
     );
   });
 
   it('forwards extra data alongside the message', () => {
-    const logger = new LoggerService(sink, LogLevel.debug);
-    logger.warn('cuidado', { a: 1 });
+    makeLogger().warn('cuidado', { a: 1 });
     expect(sink.warn).toHaveBeenCalledWith(
       expect.stringMatching(/\[WARN\] cuidado/),
       { a: 1 },
@@ -99,7 +113,7 @@ describe('LoggerService', () => {
   });
 
   it('drops messages below the minimum level', () => {
-    const logger = new LoggerService(sink, LogLevel.error);
+    const logger = makeLogger(LogLevel.error);
     logger.debug('a');
     logger.info('b');
     logger.warn('c');
@@ -109,7 +123,11 @@ describe('LoggerService', () => {
   });
 
   it('defaults to debug level so debug logs are emitted', () => {
-    const logger = new LoggerService(sink);
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [{ provide: LOGGER_SINK, useValue: sink }],
+    });
+    const logger = TestBed.inject(LoggerService);
     logger.debug('x');
     expect(sink.debug).toHaveBeenCalled();
   });
@@ -126,7 +144,7 @@ Expected: FAIL — error de compilación: no se encuentra `./logger.service` (el
 Create `src/app/core/logger.service.ts`:
 
 ```ts
-import { Injectable, Inject, InjectionToken, isDevMode } from '@angular/core';
+import { Injectable, InjectionToken, inject, isDevMode } from '@angular/core';
 
 export enum LogLevel {
   debug = 0,
@@ -142,22 +160,18 @@ export interface ConsoleLike {
   error(...args: unknown[]): void;
 }
 
-export const LOGGER_SINK = new InjectionToken<ConsoleLike>('LOGGER_SINK');
+export const LOGGER_SINK = new InjectionToken<ConsoleLike>('LOGGER_SINK', {
+  factory: () => console,
+});
 
-export const LOGGER_MIN_LEVEL = new InjectionToken<LogLevel>('LOGGER_MIN_LEVEL');
+export const LOGGER_MIN_LEVEL = new InjectionToken<LogLevel>('LOGGER_MIN_LEVEL', {
+  factory: () => (isDevMode() ? LogLevel.debug : LogLevel.warn),
+});
 
 @Injectable({ providedIn: 'root' })
 export class LoggerService {
-  private readonly sink: ConsoleLike;
-  private readonly minLevel: LogLevel;
-
-  constructor(
-    @Inject(LOGGER_SINK) sink: ConsoleLike = console,
-    @Inject(LOGGER_MIN_LEVEL) minLevel: LogLevel = isDevMode() ? LogLevel.debug : LogLevel.warn,
-  ) {
-    this.sink = sink;
-    this.minLevel = minLevel;
-  }
+  private readonly sink = inject(LOGGER_SINK);
+  private readonly minLevel = inject(LOGGER_MIN_LEVEL);
 
   debug(message: string, ...data: unknown[]): void {
     this.write(LogLevel.debug, message, data);
@@ -191,7 +205,7 @@ export class LoggerService {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx ng test --watch=false`
-Expected: PASS (5 tests). Nota: los tests corren en modo dev, por lo que `isDevMode()` es true y el test del nivel por defecto (debug) pasa.
+Expected: PASS (5 tests). Nota: los tests corren en modo dev, por lo que el factory de `LOGGER_MIN_LEVEL` resuelve a `LogLevel.debug` y el test del nivel por defecto pasa.
 
 - [ ] **Step 5: Commit**
 

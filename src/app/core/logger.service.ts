@@ -1,4 +1,4 @@
-import { Injectable, Inject, InjectionToken, isDevMode } from '@angular/core';
+import { Injectable, InjectionToken, inject, isDevMode } from '@angular/core';
 
 export enum LogLevel {
   debug = 0,
@@ -14,22 +14,18 @@ export interface ConsoleLike {
   error(...args: unknown[]): void;
 }
 
-export const LOGGER_SINK = new InjectionToken<ConsoleLike>('LOGGER_SINK');
+export const LOGGER_SINK = new InjectionToken<ConsoleLike>('LOGGER_SINK', {
+  factory: () => console,
+});
 
-export const LOGGER_MIN_LEVEL = new InjectionToken<LogLevel>('LOGGER_MIN_LEVEL');
+export const LOGGER_MIN_LEVEL = new InjectionToken<LogLevel>('LOGGER_MIN_LEVEL', {
+  factory: () => (isDevMode() ? LogLevel.debug : LogLevel.warn),
+});
 
 @Injectable({ providedIn: 'root' })
 export class LoggerService {
-  private readonly sink: ConsoleLike;
-  private readonly minLevel: LogLevel;
-
-  constructor(
-    @Inject(LOGGER_SINK) sink: ConsoleLike = console,
-    @Inject(LOGGER_MIN_LEVEL) minLevel: LogLevel = isDevMode() ? LogLevel.debug : LogLevel.warn,
-  ) {
-    this.sink = sink;
-    this.minLevel = minLevel;
-  }
+  private readonly sink = inject(LOGGER_SINK);
+  private readonly minLevel = inject(LOGGER_MIN_LEVEL);
 
   debug(message: string, ...data: unknown[]): void {
     this.write(LogLevel.debug, message, data);
