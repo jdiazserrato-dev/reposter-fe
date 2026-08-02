@@ -1,14 +1,61 @@
-.nav-link {
-  display: block;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  color: #ffe4e6;
+.gate-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.125rem;
+  color: #fff8e6;
   text-decoration: none;
-}
-.nav-link:hover {
-  background-color: rgb(159 18 57 / 0.8);
-}
-.active-link {
-  background-color: rgb(190 18 60);
+  font-size: 0.875rem;
   font-weight: 600;
+  border-left: 3px solid transparent;
+}
+
+.gate-link:hover {
+  background: rgb(255 248 230 / 0.08);
+}
+
+.gate-link .gate-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.25rem;
+  border-radius: 0.125rem;
+  background: rgb(255 248 230 / 0.14);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+.gate-link .gate-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.gate-active {
+  background: var(--color-signal);
+  color: var(--color-ink);
+  font-weight: 800;
+  border-left: 3px solid #fff;
+}
+
+.gate-active .gate-chip {
+  background: rgb(23 18 10 / 0.16);
+}
+
+.gate-active .gate-icon {
+  opacity: 1;
+}
+
+.gate-active:hover {
+  background: var(--color-signal);
+}
+
+.gate-active-mobile {
+  background: rgb(23 18 10 / 0.14);
+  color: var(--color-ink);
 }

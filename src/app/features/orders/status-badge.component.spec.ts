@@ -28,9 +28,9 @@ describe('StatusBadgeComponent', () => {
   });
 
   it('returns a color class for every status', () => {
-    expect(component.classFor('IN_PRODUCTION')).toContain('bg-sky-100');
-    expect(component.classFor('READY_FOR_DELIVERY')).toContain('bg-violet-100');
-    expect(component.classFor('DELIVERED')).toContain('bg-emerald-100');
-    expect(component.classFor('CANCELLED')).toContain('bg-rose-100');
+    expect(component.classFor('IN_PRODUCTION')).toContain('text-[#1d4ed8]');
+    expect(component.classFor('READY_FOR_DELIVERY')).toContain('text-[#6d28d9]');
+    expect(component.classFor('DELIVERED')).toContain('text-[#047857]');
+    expect(component.classFor('CANCELLED')).toContain('text-[#b3261e]');
   });
 });

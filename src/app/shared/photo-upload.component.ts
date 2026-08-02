@@ -4,11 +4,11 @@ import { ApiService } from '../core/api.service';
 @Component({
   selector: 'app-photo-upload',
   template: `
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3">
       @if (url()) {
-        <img [src]="url()" class="h-20 w-20 rounded object-cover" alt="foto" />
+        <img [src]="url()" class="h-20 w-20 rounded-sm border border-line object-cover" alt="foto" />
       }
-      <input type="file" accept="image/*" (change)="onFile($event)" class="input" />
+      <input type="file" accept="image/*" (change)="onFile($event)" class="input max-w-xs" />
       @if (url()) {
         <button type="button" class="btn btn-danger" (click)="clear()">Quitar</button>
       }

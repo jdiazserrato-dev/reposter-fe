@@ -23,65 +23,67 @@ type RecipeItemForm = FormGroup<{
   selector: 'app-recipe-form',
   imports: [ReactiveFormsModule, RouterLink, PhotoUploadComponent],
   template: `
-    <h2 class="mb-4 text-2xl font-bold">{{ id ? 'Editar receta' : 'Nueva receta' }}</h2>
-    <form [formGroup]="form" (ngSubmit)="save()" class="card max-w-2xl">
-      <div class="field">
-        <label class="label" for="name">Nombre</label>
-        <input id="name" class="input" formControlName="name" />
-      </div>
-      <div class="grid grid-cols-2 gap-4">
+    <div class="mx-auto max-w-2xl">
+      <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ id ? 'Editar receta' : 'Nueva receta' }}</h1>
+      <form [formGroup]="form" (ngSubmit)="save()" class="sign-panel p-6">
         <div class="field">
-          <label class="label" for="servings">Porciones</label>
-          <input id="servings" type="number" min="0" class="input" formControlName="servings" />
+          <label class="label" for="name">Nombre</label>
+          <input id="name" class="input" formControlName="name" />
+        </div>
+        <div class="mb-5 grid grid-cols-2 gap-4">
+          <div>
+            <label class="label" for="servings">Porciones</label>
+            <input id="servings" type="number" min="0" class="input" formControlName="servings" />
+          </div>
+          <div>
+            <label class="label" for="prepTime">Tiempo (min)</label>
+            <input id="prepTime" type="number" min="0" class="input" formControlName="prepTime" />
+          </div>
         </div>
         <div class="field">
-          <label class="label" for="prepTime">Tiempo (min)</label>
-          <input id="prepTime" type="number" min="0" class="input" formControlName="prepTime" />
+          <div class="label">Ingredientes</div>
+          <div class="mb-2 flex flex-wrap gap-2">
+            @for (ingredient of ingredients(); track ingredient.id) {
+              <label class="flex items-center gap-1 rounded-sm border border-line bg-white px-2 py-1 text-sm">
+                <input type="checkbox" [value]="ingredient" (change)="toggleIngredient($event, ingredient)" />
+                {{ ingredient.name }}
+              </label>
+            }
+          </div>
+          <div formArrayName="items" class="space-y-2">
+            @for (item of items.controls; track item; let i = $index) {
+              <div [formGroupName]="i" class="flex items-center gap-2">
+                <input formControlName="ingredientName" class="input" placeholder="Ingrediente" />
+                <input formControlName="quantity" type="number" step="0.001" min="0" class="input w-24" placeholder="Cant." />
+                <select formControlName="unit" class="select w-24">
+                  <option value="g">g</option>
+                  <option value="ml">ml</option>
+                  <option value="und">und</option>
+                </select>
+                <button type="button" class="btn btn-danger" (click)="removeItem(i)">X</button>
+              </div>
+            }
+          </div>
+          <button type="button" class="btn btn-secondary mt-2" (click)="addItem()">+ Agregar ingrediente</button>
         </div>
-      </div>
-      <div class="field">
-        <div class="label">Ingredientes</div>
-        <div class="mb-2 flex flex-wrap gap-2">
-          @for (ingredient of ingredients(); track ingredient.id) {
-            <label class="flex items-center gap-1 rounded border px-2 py-1">
-              <input type="checkbox" [value]="ingredient" (change)="toggleIngredient($event, ingredient)" />
-              {{ ingredient.name }}
-            </label>
-          }
+        <div class="field">
+          <label class="label" for="procedure">Procedimiento (un paso por línea)</label>
+          <textarea id="procedure" rows="5" class="textarea" formControlName="procedure"></textarea>
         </div>
-        <div formArrayName="items" class="space-y-2">
-          @for (item of items.controls; track item; let i = $index) {
-            <div [formGroupName]="i" class="flex items-center gap-2">
-              <input formControlName="ingredientName" class="input" placeholder="Ingrediente" />
-              <input formControlName="quantity" type="number" step="0.001" min="0" class="input w-24" placeholder="Cant." />
-              <select formControlName="unit" class="select w-24">
-                <option value="g">g</option>
-                <option value="ml">ml</option>
-                <option value="und">und</option>
-              </select>
-              <button type="button" class="btn btn-danger" (click)="removeItem(i)">X</button>
-            </div>
-          }
+        <div class="field">
+          <label class="label" for="notes">Notas</label>
+          <textarea id="notes" rows="2" class="textarea" formControlName="notes"></textarea>
         </div>
-        <button type="button" class="btn btn-secondary mt-2" (click)="addItem()">+ Agregar ingrediente</button>
-      </div>
-      <div class="field">
-        <label class="label" for="procedure">Procedimiento (un paso por línea)</label>
-        <textarea id="procedure" rows="5" class="textarea" formControlName="procedure"></textarea>
-      </div>
-      <div class="field">
-        <label class="label" for="notes">Notas</label>
-        <textarea id="notes" rows="2" class="textarea" formControlName="notes"></textarea>
-      </div>
-      <div class="field">
-        <div class="label">Foto del resultado</div>
-        <app-photo-upload [url]="form.get('photoPath')!.value" kind="recipes" (urlChange)="onPhoto($event)" />
-      </div>
-      <div class="flex gap-2">
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar</button>
-        <a routerLink="/recetas" class="btn btn-secondary">Cancelar</a>
-      </div>
-    </form>
+        <div class="field">
+          <div class="label">Foto del resultado</div>
+          <app-photo-upload [url]="form.get('photoPath')!.value" kind="recipes" (urlChange)="onPhoto($event)" />
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar receta</button>
+          <a routerLink="/recetas" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
   `,
 })
 export class RecipeFormComponent implements OnInit {
@@ -188,6 +190,3 @@ export class RecipeFormComponent implements OnInit {
     request.subscribe(() => this.router.navigate(['/recetas']));
   }
 }
-
-
-

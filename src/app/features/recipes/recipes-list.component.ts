@@ -7,31 +7,33 @@ import { RecipesService } from './recipes.service';
   selector: 'app-recipes-list',
   imports: [RouterLink],
   template: `
-    <div class="mb-4 flex items-center justify-between">
-      <h2 class="text-2xl font-bold">Recetas</h2>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-3xl font-extrabold tracking-tight">Recetas</h1>
       <a routerLink="nuevo" class="btn btn-primary">Nueva receta</a>
     </div>
-    <div class="card overflow-x-auto">
-      <table class="w-full text-left">
+    <div class="sign-panel overflow-x-auto">
+      <table class="board w-full text-left text-sm">
         <thead><tr><th>Nombre</th><th>Porciones</th><th>Tiempo (min)</th><th>Foto</th><th class="w-40"></th></tr></thead>
         <tbody>
           @for (recipe of recipes(); track recipe.id) {
-            <tr class="border-t">
-              <td>{{ recipe.name }}</td>
+            <tr>
+              <td class="font-bold">{{ recipe.name }}</td>
               <td>{{ recipe.servings ?? '-' }}</td>
               <td>{{ recipe.prepTime ?? '-' }}</td>
               <td>
                 @if (recipe.photoPath) {
-                  <img [src]="recipe.photoPath" class="h-10 w-10 rounded object-cover" alt="" />
+                  <img [src]="recipe.photoPath" class="h-10 w-10 rounded-sm object-cover" alt="" />
                 }
               </td>
-              <td class="flex gap-2">
-                <a [routerLink]="[recipe.id]" class="btn btn-secondary">Editar</a>
-                <button type="button" class="btn btn-danger" (click)="remove(recipe)">Eliminar</button>
+              <td>
+                <div class="flex gap-2">
+                  <a [routerLink]="[recipe.id]" class="btn btn-secondary">Editar</a>
+                  <button type="button" class="btn btn-danger" (click)="remove(recipe)">Eliminar</button>
+                </div>
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="5" class="py-4 text-center text-stone-400">Sin recetas registradas.</td></tr>
+            <tr><td colspan="5" class="py-6 text-center text-mute">Sin recetas registradas.</td></tr>
           }
         </tbody>
       </table>

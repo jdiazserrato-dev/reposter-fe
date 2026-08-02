@@ -7,25 +7,27 @@ import { ClientsService } from './clients.service';
   selector: 'app-clients-list',
   imports: [RouterLink],
   template: `
-    <div class="mb-4 flex items-center justify-between">
-      <h2 class="text-2xl font-bold">Clientes</h2>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-3xl font-extrabold tracking-tight">Clientes</h1>
       <a routerLink="nuevo" class="btn btn-primary">Nuevo cliente</a>
     </div>
-    <div class="card overflow-x-auto">
-      <table class="w-full text-left">
+    <div class="sign-panel overflow-x-auto">
+      <table class="board w-full text-left text-sm">
         <thead><tr><th>Nombre</th><th>Teléfono</th><th class="w-40"></th></tr></thead>
         <tbody>
           @for (client of clients(); track client.id) {
-            <tr class="border-t">
-              <td>{{ client.name }}</td>
+            <tr>
+              <td class="font-bold">{{ client.name }}</td>
               <td>{{ client.phone }}</td>
-              <td class="flex gap-2">
-                <a [routerLink]="[client.id]" class="btn btn-secondary">Editar</a>
-                <button type="button" class="btn btn-danger" (click)="remove(client)">Eliminar</button>
+              <td>
+                <div class="flex gap-2">
+                  <a [routerLink]="[client.id]" class="btn btn-secondary">Editar</a>
+                  <button type="button" class="btn btn-danger" (click)="remove(client)">Eliminar</button>
+                </div>
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="3" class="py-4 text-center text-stone-400">Sin clientes registrados.</td></tr>
+            <tr><td colspan="3" class="py-6 text-center text-mute">Sin clientes registrados.</td></tr>
           }
         </tbody>
       </table>

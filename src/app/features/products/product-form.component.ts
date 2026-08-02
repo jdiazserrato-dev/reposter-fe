@@ -12,29 +12,31 @@ import { ProductsService } from './products.service';
   selector: 'app-product-form',
   imports: [ReactiveFormsModule, RouterLink, PhotoUploadComponent],
   template: `
-    <h2 class="mb-4 text-2xl font-bold">{{ id ? 'Editar producto' : 'Nuevo producto' }}</h2>
-    <form [formGroup]="form" (ngSubmit)="save()" class="card max-w-lg">
-      <div class="field">
-        <label class="label" for="name">Nombre</label>
-        <input id="name" class="input" formControlName="name" />
-      </div>
-      <div class="field">
-        <label class="label" for="category">Categoría</label>
-        <input id="category" class="input" formControlName="category" />
-      </div>
-      <div class="field">
-        <label class="label" for="basePrice">Precio base</label>
-        <input id="basePrice" type="number" step="0.01" min="0" class="input" formControlName="basePrice" />
-      </div>
-      <div class="field">
-        <div class="label">Foto</div>
-        <app-photo-upload [url]="form.get('photoPath')!.value" kind="products" (urlChange)="onPhoto($event)" />
-      </div>
-      <div class="flex gap-2">
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar</button>
-        <a routerLink="/productos" class="btn btn-secondary">Cancelar</a>
-      </div>
-    </form>
+    <div class="mx-auto max-w-lg">
+      <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ id ? 'Editar producto' : 'Nuevo producto' }}</h1>
+      <form [formGroup]="form" (ngSubmit)="save()" class="sign-panel p-6">
+        <div class="field">
+          <label class="label" for="name">Nombre</label>
+          <input id="name" class="input" formControlName="name" />
+        </div>
+        <div class="field">
+          <label class="label" for="category">Categoría</label>
+          <input id="category" class="input" formControlName="category" />
+        </div>
+        <div class="field">
+          <label class="label" for="basePrice">Precio base</label>
+          <input id="basePrice" type="number" step="0.01" min="0" class="input" formControlName="basePrice" />
+        </div>
+        <div class="field">
+          <div class="label">Foto</div>
+          <app-photo-upload [url]="form.get('photoPath')!.value" kind="products" (urlChange)="onPhoto($event)" />
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar producto</button>
+          <a routerLink="/productos" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
   `,
 })
 export class ProductFormComponent implements OnInit {

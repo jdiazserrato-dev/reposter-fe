@@ -11,21 +11,23 @@ import { ClientsService } from './clients.service';
   selector: 'app-client-form',
   imports: [ReactiveFormsModule, RouterLink],
   template: `
-    <h2 class="mb-4 text-2xl font-bold">{{ id ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
-    <form [formGroup]="form" (ngSubmit)="save()" class="card max-w-md">
-      <div class="field">
-        <label class="label" for="name">Nombre</label>
-        <input id="name" class="input" formControlName="name" />
-      </div>
-      <div class="field">
-        <label class="label" for="phone">Teléfono</label>
-        <input id="phone" class="input" formControlName="phone" />
-      </div>
-      <div class="flex gap-2">
-        <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar</button>
-        <a routerLink="/clientes" class="btn btn-secondary">Cancelar</a>
-      </div>
-    </form>
+    <div class="mx-auto max-w-md">
+      <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ id ? 'Editar cliente' : 'Nuevo cliente' }}</h1>
+      <form [formGroup]="form" (ngSubmit)="save()" class="sign-panel p-6">
+        <div class="field">
+          <label class="label" for="name">Nombre</label>
+          <input id="name" class="input" formControlName="name" />
+        </div>
+        <div class="field">
+          <label class="label" for="phone">Teléfono</label>
+          <input id="phone" class="input" formControlName="phone" />
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar cliente</button>
+          <a routerLink="/clientes" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
   `,
 })
 export class ClientFormComponent implements OnInit {

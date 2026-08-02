@@ -32,12 +32,12 @@ interface OrderItemInput {
   selector: 'app-order-form',
   imports: [ReactiveFormsModule, PhotoUploadComponent],
   template: `
-    <div class="card p-6 max-w-3xl mx-auto">
-      <h1 class="text-2xl font-bold mb-4">{{ id ? 'Editar pedido' : 'Nuevo pedido' }}</h1>
-      <form [formGroup]="form" (ngSubmit)="save()">
-        <div class="mb-4">
+    <div class="mx-auto max-w-3xl">
+      <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ id ? 'Editar pedido' : 'Nuevo pedido' }}</h1>
+      <form [formGroup]="form" (ngSubmit)="save()" class="sign-panel p-6">
+        <div class="mb-5">
           <label class="label" for="client">Cliente</label>
-          <select id="client" class="input" formControlName="clientId">
+          <select id="client" class="select" formControlName="clientId">
             <option [ngValue]="null">Cliente nuevo</option>
             @for (client of clients(); track client.id) {
               <option [ngValue]="client.id">{{ client.name }}</option>
@@ -45,7 +45,7 @@ interface OrderItemInput {
           </select>
         </div>
         @if (form.value.clientId === null) {
-          <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="mb-5 grid grid-cols-2 gap-4">
             <div>
               <label class="label" for="clientName">Nombre</label>
               <input id="clientName" class="input" formControlName="clientName" placeholder="Nombre del cliente" />
@@ -56,19 +56,19 @@ interface OrderItemInput {
             </div>
           </div>
         }
-        <div class="mb-4">
+        <div class="mb-5">
           <label class="label" for="deliveryDate">Fecha de entrega</label>
           <input id="deliveryDate" class="input" type="date" formControlName="deliveryDate" />
         </div>
-        <div class="mb-4">
+        <div class="mb-5">
           <div class="label">Líneas</div>
           <div formArrayName="items">
             @for (item of items.controls; track item; let i = $index) {
-              <div class="border rounded p-4 mb-2" [formGroupName]="i">
-                <div class="grid grid-cols-4 gap-4 items-end">
+              <div class="mb-2 border border-line p-4" [formGroupName]="i">
+                <div class="grid grid-cols-4 items-end gap-4">
                   <div class="col-span-2">
                     <label class="label" [for]="'product' + i">Producto</label>
-                    <select [id]="'product' + i" class="input" formControlName="productId" (change)="onProduct($event, i)">
+                    <select [id]="'product' + i" class="select" formControlName="productId" (change)="onProduct($event, i)">
                       <option [ngValue]="null">Seleccionar producto</option>
                       @for (product of products(); track product.id) {
                         <option [ngValue]="product.id">{{ product.name }}</option>
@@ -85,7 +85,7 @@ interface OrderItemInput {
                   </div>
                 </div>
                 <div class="mt-2 flex items-center justify-between">
-                  <span class="text-sm text-gray-500">{{ item.value.productName }}</span>
+                  <span class="text-sm text-mute">{{ item.value.productName }}</span>
                   <button type="button" class="btn btn-danger" (click)="removeItem(i)">Eliminar</button>
                 </div>
               </div>
@@ -93,14 +93,14 @@ interface OrderItemInput {
           </div>
           <button type="button" class="btn btn-secondary" (click)="addItem()">Añadir línea</button>
         </div>
-        <div class="mb-4">
+        <div class="mb-5">
           <label class="label" for="notes">Notas</label>
-          <textarea id="notes" class="input" formControlName="notes" rows="3" placeholder="Notas del pedido"></textarea>
+          <textarea id="notes" class="textarea" formControlName="notes" rows="3" placeholder="Notas del pedido"></textarea>
         </div>
         <app-photo-upload [url]="form.value.photoPath ?? null" [kind]="'orders'" (urlChange)="onPhoto($event)"></app-photo-upload>
-        <div class="mt-4 flex items-center justify-between">
-          <span class="text-lg font-bold">Total: \${{ total() }}</span>
-          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar</button>
+        <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+          <span class="text-lg font-extrabold">Total: \${{ total() }}</span>
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar pedido</button>
         </div>
       </form>
     </div>

@@ -4,9 +4,9 @@ import { OrderStatus } from '../../models';
 @Component({
   selector: 'app-status-badge',
   template: `<span
-    class="rounded px-2 py-0.5 text-xs font-semibold"
+    class="status-chip"
     [class]="classFor(status())"
-  >{{ statusLabel(status()) }}</span>`,
+  ><span class="status-dot"></span>{{ statusLabel(status()) }}</span>`,
 })
 export class StatusBadgeComponent {
   readonly status = input.required<OrderStatus>();
@@ -20,11 +20,11 @@ export class StatusBadgeComponent {
   };
 
   private readonly classes: Record<OrderStatus, string> = {
-    ['PENDING']: 'bg-amber-100 text-amber-700',
-    ['IN_PRODUCTION']: 'bg-sky-100 text-sky-700',
-    ['READY_FOR_DELIVERY']: 'bg-violet-100 text-violet-700',
-    ['DELIVERED']: 'bg-emerald-100 text-emerald-700',
-    ['CANCELLED']: 'bg-rose-100 text-rose-700',
+    ['PENDING']: 'bg-[#fff3c4] text-[#8a6a00]',
+    ['IN_PRODUCTION']: 'bg-[#dbeafe] text-[#1d4ed8]',
+    ['READY_FOR_DELIVERY']: 'bg-[#ede9fe] text-[#6d28d9]',
+    ['DELIVERED']: 'bg-[#d1fae5] text-[#047857]',
+    ['CANCELLED']: 'bg-[#fee2e2] text-[#b3261e]',
   };
 
   statusLabel(status: OrderStatus): string {
