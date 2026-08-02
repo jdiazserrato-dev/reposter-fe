@@ -1,0 +1,14 @@
+.nav-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  color: #ffe4e6;
+  text-decoration: none;
+}
+.nav-link:hover {
+  background-color: rgb(159 18 57 / 0.8);
+}
+.active-link {
+  background-color: rgb(190 18 60);
+  font-weight: 600;
+}
