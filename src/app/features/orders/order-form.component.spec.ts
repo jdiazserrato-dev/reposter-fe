@@ -163,6 +163,25 @@ describe('OrderFormComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/pedidos']);
   });
 
+  it('sends unitPrice as a number even when the catalog returns a decimal string', () => {
+    createFixture();
+    const products = component
+      .products()
+      .map((p) => (p.id === 2 ? { ...p, basePrice: '250.00' as unknown as number } : p));
+    component.products.set(products);
+    component.form.patchValue({ clientId: 1, deliveryDate: '2026-08-15' });
+    component.items.at(0).patchValue({ productId: 2, quantity: 3, unitPrice: 150 });
+    component.onProduct({} as Event, 0);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+    const body = ordersService.create.mock.calls[0][0] as Record<string, unknown>;
+    const item = (body['items'] as Record<string, unknown>[])[0];
+    expect(item['productName']).toBe('Vainilla');
+    expect(item['unitPrice']).toBe(250);
+    expect(typeof item['unitPrice']).toBe('number');
+  });
+
   it('saves a new order with a new client', () => {
     createFixture();
     component.form.patchValue({ clientId: null, clientName: 'Maria', clientPhone: '666', deliveryDate: '2026-08-15' });
