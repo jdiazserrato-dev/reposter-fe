@@ -149,13 +149,15 @@ describe('OrderFormComponent', () => {
     createFixture();
     component.form.patchValue({ clientId: 1, deliveryDate: '2026-08-15' });
     component.items.at(0).patchValue({ quantity: 2, unitPrice: 150 });
+    selectFirstProduct();
+    fixture.detectChanges();
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     fixture.detectChanges();
     expect(ordersService.create).toHaveBeenCalledWith(
       expect.objectContaining({
         clientId: 1,
         deliveryDate: expect.any(String),
-        items: [{ productId: null, productName: '', quantity: 2, unitPrice: 150 }],
+        items: [{ productId: 1, productName: 'Chocolate', quantity: 2, unitPrice: 150 }],
       }),
     );
     expect(router.navigate).toHaveBeenCalledWith(['/orders']);
@@ -164,6 +166,8 @@ describe('OrderFormComponent', () => {
   it('saves a new order with a new client', () => {
     createFixture();
     component.form.patchValue({ clientId: null, clientName: 'Maria', clientPhone: '666', deliveryDate: '2026-08-15' });
+    selectFirstProduct();
+    fixture.detectChanges();
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     fixture.detectChanges();
     const body = ordersService.create.mock.calls[0][0] as Record<string, unknown>;
@@ -174,10 +178,39 @@ describe('OrderFormComponent', () => {
   it('does not attach a client when name is missing a phone', () => {
     createFixture();
     component.form.patchValue({ clientId: null, clientName: 'Maria', clientPhone: '', deliveryDate: '2026-08-15' });
+    selectFirstProduct();
     component.save();
     const body = ordersService.create.mock.calls[0][0] as Record<string, unknown>;
     expect(body['client']).toBeUndefined();
     expect(body['clientId']).toBeUndefined();
+  });
+
+  it('does not save when a line has no product', () => {
+    createFixture();
+    component.form.patchValue({ clientId: 1, deliveryDate: '2026-08-15' });
+    component.items.at(0).patchValue({ quantity: 2, unitPrice: 150 });
+    component.save();
+    expect(ordersService.create).not.toHaveBeenCalled();
+  });
+
+  it('shows the product hint when a line has no product and is touched', () => {
+    createFixture();
+    component.items.at(0).get('productId')?.markAsTouched();
+    fixture.detectChanges();
+    const hints = Array.from(
+      fixture.nativeElement.querySelectorAll('p') as unknown as HTMLElement[],
+    ).map((p: HTMLElement) => p.textContent);
+    expect(hints).toContain('Selecciona un producto');
+  });
+
+  it('hides the product hint when the line is valid', () => {
+    createFixture();
+    selectFirstProduct();
+    fixture.detectChanges();
+    const hints = Array.from(
+      fixture.nativeElement.querySelectorAll('p') as unknown as HTMLElement[],
+    ).map((p: HTMLElement) => p.textContent);
+    expect(hints).not.toContain('Selecciona un producto');
   });
 
   it('updates an existing order', () => {
