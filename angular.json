@@ -74,6 +74,7 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "runner": "vitest",
+            "runnerConfig": "vitest-base.config.ts",
             "coverage": true,
             "coverageReporters": ["text-summary", "html", "lcov"],
             "coverageThresholds": {
