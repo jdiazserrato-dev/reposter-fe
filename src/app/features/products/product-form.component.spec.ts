@@ -95,4 +95,27 @@ describe('ProductFormComponent', () => {
       '/uploads/b.png',
     );
   });
+
+  it('updates the product when editing', () => {
+    service.findOne.mockReturnValue(
+      of({
+        id: 7,
+        name: 'Torta',
+        category: 'torta',
+        basePrice: 25,
+        photoPath: null,
+      }),
+    );
+    service.update.mockReturnValue(of({ id: 7 }));
+    param = '7';
+    const fixture = TestBed.createComponent(ProductFormComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.save();
+    expect(service.update).toHaveBeenCalledWith(7, {
+      name: 'Torta',
+      category: 'torta',
+      basePrice: 25,
+      photoPath: null,
+    });
+  });
 });

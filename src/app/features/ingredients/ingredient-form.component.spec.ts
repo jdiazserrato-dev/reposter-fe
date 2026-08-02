@@ -16,6 +16,7 @@ describe('IngredientFormComponent', () => {
 
   beforeEach(() => {
     service = { findOne: vi.fn(), create: vi.fn(), update: vi.fn() };
+    param = null;
     TestBed.configureTestingModule({
       imports: [IngredientFormComponent],
       providers: [
@@ -31,7 +32,9 @@ describe('IngredientFormComponent', () => {
     const fixture = TestBed.createComponent(IngredientFormComponent);
     fixture.componentInstance.form.setValue({ name: 'Harina' });
     fixture.detectChanges();
-    fixture.componentInstance.save();
+    (fixture.nativeElement as HTMLElement)
+      .querySelector('form')!
+      .dispatchEvent(new Event('submit'));
     expect(service.create).toHaveBeenCalledWith({ name: 'Harina' });
   });
 
@@ -48,5 +51,15 @@ describe('IngredientFormComponent', () => {
     const fixture = TestBed.createComponent(IngredientFormComponent);
     fixture.detectChanges();
     expect(fixture.componentInstance.form.get('name')!.value).toBe('Azúcar');
+  });
+
+  it('updates the ingredient when editing', () => {
+    service.findOne.mockReturnValue(of({ id: 7, name: 'Azúcar' }));
+    service.update.mockReturnValue(of({ id: 7 }));
+    param = '7';
+    const fixture = TestBed.createComponent(IngredientFormComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.save();
+    expect(service.update).toHaveBeenCalledWith(7, { name: 'Azúcar' });
   });
 });

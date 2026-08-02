@@ -39,4 +39,13 @@ describe('PhotoUploadComponent', () => {
     fixture.nativeElement.querySelector('button').click();
     expect(emit).toHaveBeenCalledWith(null);
   });
+
+  it('ignores a change without a file', () => {
+    const fixture = TestBed.createComponent(PhotoUploadComponent);
+    fixture.componentRef.setInput('kind', 'recipes');
+    const input = fixture.nativeElement.querySelector('input[type=file]');
+    Object.defineProperty(input, 'files', { value: [] });
+    input.dispatchEvent(new Event('change'));
+    expect(api.upload).not.toHaveBeenCalled();
+  });
 });

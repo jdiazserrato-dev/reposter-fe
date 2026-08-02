@@ -16,6 +16,7 @@ describe('ClientFormComponent', () => {
 
   beforeEach(() => {
     service = { findOne: vi.fn(), create: vi.fn(), update: vi.fn() };
+    param = null;
     TestBed.configureTestingModule({
       imports: [ClientFormComponent],
       providers: [
@@ -31,7 +32,9 @@ describe('ClientFormComponent', () => {
     const fixture = TestBed.createComponent(ClientFormComponent);
     fixture.componentInstance.form.setValue({ name: 'Ana', phone: '3001234567' });
     fixture.detectChanges();
-    fixture.componentInstance.save();
+    (fixture.nativeElement as HTMLElement)
+      .querySelector('form')!
+      .dispatchEvent(new Event('submit'));
     expect(service.create).toHaveBeenCalledWith({
       name: 'Ana',
       phone: '3001234567',
@@ -51,5 +54,20 @@ describe('ClientFormComponent', () => {
     const fixture = TestBed.createComponent(ClientFormComponent);
     fixture.detectChanges();
     expect(fixture.componentInstance.form.get('name')!.value).toBe('Betty');
+  });
+
+  it('updates the client when editing', () => {
+    service.findOne.mockReturnValue(
+      of({ id: 7, name: 'Betty', phone: '3001234567' }),
+    );
+    service.update.mockReturnValue(of({ id: 7 }));
+    param = '7';
+    const fixture = TestBed.createComponent(ClientFormComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.save();
+    expect(service.update).toHaveBeenCalledWith(7, {
+      name: 'Betty',
+      phone: '3001234567',
+    });
   });
 });
