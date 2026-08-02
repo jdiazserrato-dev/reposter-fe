@@ -1,0 +1,18 @@
+name: Validate branch name
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          if [[ ! "$BRANCH" =~ ^(feature|bugfix|hotfix|release|backport)/ ]]; then
+            echo "ERROR: Branch name '$BRANCH' must start with feature/, bugfix/, hotfix/, release/, or backport/"
+            exit 1
+          fi
+          echo "Branch name '$BRANCH' is valid"

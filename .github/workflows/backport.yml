@@ -1,0 +1,28 @@
+name: Backport to develop
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  backport:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create backport PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="backport/sync-master-$(date +'%Y%m%d')"
+          git checkout -b "$BRANCH" origin/master
+          git push origin "$BRANCH"
+          gh pr create \
+            --base develop \
+            --head "$BRANCH" \
+            --title "chore: sync master → develop" \
+            --body "Backport de cambios de master a develop tras merge." \
+            --label backport
