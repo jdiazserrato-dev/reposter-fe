@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "schematicCollections": ["angular-eslint"]
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -24,16 +25,10 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
+            "styles": ["src/styles.css"],
+            "outputMode": "static",
             "security": {
               "allowedHosts": []
-            },
-            "ssr": {
-              "entry": "src/server.ts"
             }
           },
           "configurations": {
@@ -62,6 +57,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "reposter-fe:build:production"
@@ -73,7 +71,32 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "runner": "vitest",
+            "runnerConfig": "vitest-base.config.ts",
+            "coverage": true,
+            "coverageReporters": ["text-summary", "html", "lcov"],
+            "coverageThresholds": {
+              "statements": 95,
+              "branches": 95,
+              "functions": 95,
+              "lines": 95
+            },
+            "coverageExclude": [
+              "**/features/*/*.routes.ts",
+              "**/app.routes.ts",
+              "**/app.config.ts",
+              "**/main.ts",
+              "**/main.server.ts"
+            ]
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+          }
         }
       }
     }
