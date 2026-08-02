@@ -45,7 +45,9 @@
 - Produces:
   - `enum LogLevel { debug = 0, info = 1, warn = 2, error = 3 }`
   - `interface ConsoleLike { debug(...args: unknown[]): void; info(...args: unknown[]): void; warn(...args: unknown[]): void; error(...args: unknown[]): void; }`
-  - `class LoggerService` con constructor `constructor(sink: ConsoleLike = console, minLevel: LogLevel = isDevMode() ? LogLevel.debug : LogLevel.warn)` y métodos `debug(message: string, ...data: unknown[]): void`, `info(...)`, `warn(...)`, `error(...)`.
+  - Tokens `LOGGER_SINK: InjectionToken<ConsoleLike>` y `LOGGER_MIN_LEVEL: InjectionToken<LogLevel>`
+  - `class LoggerService` con constructor `constructor(@Inject(LOGGER_SINK) sink: ConsoleLike = console, @Inject(LOGGER_MIN_LEVEL) minLevel: LogLevel = isDevMode() ? LogLevel.debug : LogLevel.warn)` y métodos `debug(message: string, ...data: unknown[]): void`, `info(...)`, `warn(...)`, `error(...)`.
+  - NOTA: el constructor usa `@Inject` con tokens porque `@Injectable` + parámetro de tipo interfaz sin token provoca el error de compilación NG2003 del compilador de Angular.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -55,19 +57,21 @@ Create `src/app/core/logger.service.spec.ts`:
 import { LoggerService, LogLevel } from './logger.service';
 
 describe('LoggerService', () => {
+  type MockFn = (...args: unknown[]) => void;
+
   let sink: {
-    debug: ReturnType<typeof vi.fn>;
-    info: ReturnType<typeof vi.fn>;
-    warn: ReturnType<typeof vi.fn>;
-    error: ReturnType<typeof vi.fn>;
+    debug: MockFn;
+    info: MockFn;
+    warn: MockFn;
+    error: MockFn;
   };
 
   beforeEach(() => {
     sink = {
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
+      debug: vi.fn<MockFn>(),
+      info: vi.fn<MockFn>(),
+      warn: vi.fn<MockFn>(),
+      error: vi.fn<MockFn>(),
     };
   });
 
@@ -122,7 +126,7 @@ Expected: FAIL — error de compilación: no se encuentra `./logger.service` (el
 Create `src/app/core/logger.service.ts`:
 
 ```ts
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable, Inject, InjectionToken, isDevMode } from '@angular/core';
 
 export enum LogLevel {
   debug = 0,
@@ -138,14 +142,18 @@ export interface ConsoleLike {
   error(...args: unknown[]): void;
 }
 
+export const LOGGER_SINK = new InjectionToken<ConsoleLike>('LOGGER_SINK');
+
+export const LOGGER_MIN_LEVEL = new InjectionToken<LogLevel>('LOGGER_MIN_LEVEL');
+
 @Injectable({ providedIn: 'root' })
 export class LoggerService {
   private readonly sink: ConsoleLike;
   private readonly minLevel: LogLevel;
 
   constructor(
-    sink: ConsoleLike = console,
-    minLevel: LogLevel = isDevMode() ? LogLevel.debug : LogLevel.warn,
+    @Inject(LOGGER_SINK) sink: ConsoleLike = console,
+    @Inject(LOGGER_MIN_LEVEL) minLevel: LogLevel = isDevMode() ? LogLevel.debug : LogLevel.warn,
   ) {
     this.sink = sink;
     this.minLevel = minLevel;
