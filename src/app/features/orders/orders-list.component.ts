@@ -1,20 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { OrdersService } from './orders.service';
 import { Order, OrderStatus } from '../../models';
-import { StatusBadgeComponent } from './status-badge.component';
-
-const ORDER_STATUSES: OrderStatus[] = [
-  'PENDING',
-  'IN_PRODUCTION',
-  'READY_FOR_DELIVERY',
-  'DELIVERED',
-  'CANCELLED',
-];
+import { OrdersService } from './orders.service';
+import { STATUS_OPTIONS, ORDER_STATUSES } from './order-status';
 
 @Component({
   selector: 'app-orders-list',
-  imports: [RouterLink, StatusBadgeComponent],
+  imports: [RouterLink],
   template: `
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
       <h1 class="text-3xl font-extrabold tracking-tight">Pedidos</h1>
@@ -33,26 +25,41 @@ const ORDER_STATUSES: OrderStatus[] = [
               <th>Total</th>
               <th>Fecha de entrega</th>
               <th>Estado</th>
+              <th>Cerrado</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             @for (order of orders(); track order.id) {
-              <tr>
+              <tr [class]="rowClassFor(order)">
                 <td class="font-bold">{{ order.orderNumber }}</td>
                 <td>{{ order.client.name }}</td>
                 <td class="font-semibold">\${{ order.totalAmount }}</td>
                 <td>{{ order.deliveryDate.slice(0, 10) }}</td>
                 <td>
-                  <div class="flex items-center gap-2">
-                    <span [class]="flapClassFor(order.id)">
-                      <app-status-badge [status]="order.status" />
-                    </span>
-                  </div>
+                  <select
+                    class="select w-auto text-sm"
+                    [class.flap]="flapClassFor(order.id)"
+                    [value]="order.status"
+                    [disabled]="isClosedFor(order)"
+                    (change)="onStatus(order, $event)"
+                  >
+                    @for (status of allStatuses; track status) {
+                      <option [value]="status" [selected]="status === order.status">{{ STATUS_OPTIONS[status].label }}</option>
+                    }
+                  </select>
                 </td>
-                <td class="text-right">
+                <td class="text-center">
+                  <input
+                    type="checkbox"
+                    [id]="'closed-' + order.id"
+                    [checked]="isClosedFor(order)"
+                    (change)="toggleClosed(order, $event)"
+                  />
+                </td>
+                <td class="text-left">
                   <a routerLink="{{ order.id }}" class="inline-flex items-center gap-1 font-bold text-ink underline decoration-signal decoration-2 underline-offset-4 hover:decoration-ink">
-                    Puerta {{ order.id }}
+                    Pedido {{ order.id }}
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M5 12h14M13 6l6 6-6 6" />
                     </svg>
@@ -63,34 +70,14 @@ const ORDER_STATUSES: OrderStatus[] = [
           </tbody>
         </table>
       </div>
-
-      <details class="sign-panel mt-6 p-4">
-        <summary class="cursor-pointer text-sm font-bold uppercase tracking-wide text-mute hover:text-ink">
-          Cambiar estado de un pedido
-        </summary>
-        <div class="mt-3 flex flex-col gap-2">
-          @for (order of orders(); track order.id) {
-            <div class="flex items-center justify-between gap-3 border-b border-line py-2 last:border-0">
-              <span class="font-semibold">{{ order.orderNumber }} · {{ order.client.name }}</span>
-              <select
-                class="select w-auto text-sm"
-                [value]="order.status"
-                (change)="onStatus(order, $event)"
-              >
-                @for (status of allStatuses; track status) {
-                  <option [value]="status">{{ status }}</option>
-                }
-              </select>
-            </div>
-          }
-        </div>
-      </details>
     }
   `,
 })
 export class OrdersListComponent implements OnInit {
   public readonly orders = signal<Order[]>([]);
   protected readonly allStatuses = ORDER_STATUSES;
+  protected readonly STATUS_OPTIONS = STATUS_OPTIONS;
+  protected readonly closed = signal<Set<number>>(new Set());
   private readonly flapping = new Set<number>();
 
   private readonly service = inject(OrdersService);
@@ -108,7 +95,28 @@ export class OrdersListComponent implements OnInit {
     });
   }
 
+  toggleClosed(order: Order, event: Event): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    this.closed.update((set) => {
+      const next = new Set(set);
+      if (isChecked) {
+        next.add(order.id);
+      } else {
+        next.delete(order.id);
+      }
+      return next;
+    });
+  }
+
   flapClassFor(id: number): string {
     return this.flapping.has(id) ? 'flap' : '';
+  }
+
+  rowClassFor(order: Order): string {
+    return this.isClosedFor(order) ? 'opacity-50' : '';
+  }
+
+  isClosedFor(order: Order): boolean {
+    return this.closed().has(order.id) || order.status === 'DELIVERED' || order.status === 'CANCELLED';
   }
 }
