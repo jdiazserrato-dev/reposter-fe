@@ -46,6 +46,11 @@ describe('OrderFormComponent', () => {
     fixture.detectChanges();
   }
 
+  function selectFirstProduct(): void {
+    component.items.at(0).patchValue({ productId: 1 });
+    component.onProduct({} as Event, 0);
+  }
+
   beforeEach(async () => {
     route = { snapshot: { params: {} } };
     ordersService = { findOne: vi.fn(), create: vi.fn(), update: vi.fn() };
@@ -96,9 +101,22 @@ describe('OrderFormComponent', () => {
 
   it('onProduct fills name and price from the catalog', () => {
     createFixture();
-    component.onProduct({ target: { value: '1' } } as unknown as Event, 0);
+    component.items.at(0).patchValue({ productId: 1 });
+    component.onProduct({} as Event, 0);
     expect(component.items.at(0).get('productName')?.value).toBe('Chocolate');
     expect(component.items.at(0).get('unitPrice')?.value).toBe(150);
+  });
+
+  it('onProduct converts a string basePrice to a number', () => {
+    createFixture();
+    const products = component
+      .products()
+      .map((p) => (p.id === 2 ? { ...p, basePrice: '200.00' as unknown as number } : p));
+    component.products.set(products);
+    component.items.at(0).patchValue({ productId: 2 });
+    component.onProduct({} as Event, 0);
+    expect(component.items.at(0).get('productName')?.value).toBe('Vainilla');
+    expect(component.items.at(0).get('unitPrice')?.value).toBe(200);
   });
 
   it('handles the product change listener', () => {
@@ -131,21 +149,44 @@ describe('OrderFormComponent', () => {
     createFixture();
     component.form.patchValue({ clientId: 1, deliveryDate: '2026-08-15' });
     component.items.at(0).patchValue({ quantity: 2, unitPrice: 150 });
+    selectFirstProduct();
+    fixture.detectChanges();
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     fixture.detectChanges();
     expect(ordersService.create).toHaveBeenCalledWith(
       expect.objectContaining({
         clientId: 1,
         deliveryDate: expect.any(String),
-        items: [{ productId: null, productName: '', quantity: 2, unitPrice: 150 }],
+        items: [{ productId: 1, productName: 'Chocolate', quantity: 2, unitPrice: 150 }],
       }),
     );
-    expect(router.navigate).toHaveBeenCalledWith(['/orders']);
+    expect(router.navigate).toHaveBeenCalledWith(['/pedidos']);
+  });
+
+  it('sends unitPrice as a number even when the catalog returns a decimal string', () => {
+    createFixture();
+    const products = component
+      .products()
+      .map((p) => (p.id === 2 ? { ...p, basePrice: '250.00' as unknown as number } : p));
+    component.products.set(products);
+    component.form.patchValue({ clientId: 1, deliveryDate: '2026-08-15' });
+    component.items.at(0).patchValue({ productId: 2, quantity: 3, unitPrice: 150 });
+    component.onProduct({} as Event, 0);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+    const body = ordersService.create.mock.calls[0][0] as Record<string, unknown>;
+    const item = (body['items'] as Record<string, unknown>[])[0];
+    expect(item['productName']).toBe('Vainilla');
+    expect(item['unitPrice']).toBe(250);
+    expect(typeof item['unitPrice']).toBe('number');
   });
 
   it('saves a new order with a new client', () => {
     createFixture();
     component.form.patchValue({ clientId: null, clientName: 'Maria', clientPhone: '666', deliveryDate: '2026-08-15' });
+    selectFirstProduct();
+    fixture.detectChanges();
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     fixture.detectChanges();
     const body = ordersService.create.mock.calls[0][0] as Record<string, unknown>;
@@ -156,10 +197,39 @@ describe('OrderFormComponent', () => {
   it('does not attach a client when name is missing a phone', () => {
     createFixture();
     component.form.patchValue({ clientId: null, clientName: 'Maria', clientPhone: '', deliveryDate: '2026-08-15' });
+    selectFirstProduct();
     component.save();
     const body = ordersService.create.mock.calls[0][0] as Record<string, unknown>;
     expect(body['client']).toBeUndefined();
     expect(body['clientId']).toBeUndefined();
+  });
+
+  it('does not save when a line has no product', () => {
+    createFixture();
+    component.form.patchValue({ clientId: 1, deliveryDate: '2026-08-15' });
+    component.items.at(0).patchValue({ quantity: 2, unitPrice: 150 });
+    component.save();
+    expect(ordersService.create).not.toHaveBeenCalled();
+  });
+
+  it('shows the product hint when a line has no product and is touched', () => {
+    createFixture();
+    component.items.at(0).get('productId')?.markAsTouched();
+    fixture.detectChanges();
+    const hints = Array.from(
+      fixture.nativeElement.querySelectorAll('p') as unknown as HTMLElement[],
+    ).map((p: HTMLElement) => p.textContent);
+    expect(hints).toContain('Selecciona un producto');
+  });
+
+  it('hides the product hint when the line is valid', () => {
+    createFixture();
+    selectFirstProduct();
+    fixture.detectChanges();
+    const hints = Array.from(
+      fixture.nativeElement.querySelectorAll('p') as unknown as HTMLElement[],
+    ).map((p: HTMLElement) => p.textContent);
+    expect(hints).not.toContain('Selecciona un producto');
   });
 
   it('updates an existing order', () => {
@@ -170,7 +240,7 @@ describe('OrderFormComponent', () => {
       5,
       expect.objectContaining({ deliveryDate: expect.any(String) }),
     );
-    expect(router.navigate).toHaveBeenCalledWith(['/orders']);
+    expect(router.navigate).toHaveBeenCalledWith(['/pedidos']);
   });
 
   it('does not save an invalid form', () => {

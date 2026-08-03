@@ -74,6 +74,9 @@ interface OrderItemInput {
                         <option [ngValue]="product.id">{{ product.name }}</option>
                       }
                     </select>
+                    @if (item.controls.productName.invalid && item.controls.productId.touched) {
+                      <p class="mt-1 text-xs text-[#b3261e]">Selecciona un producto</p>
+                    }
                   </div>
                   <div>
                     <label class="label" [for]="'quantity' + i">Cantidad</label>
@@ -166,7 +169,7 @@ export class OrderFormComponent implements OnInit {
   newItem(item?: OrderItemInput): OrderItemForm {
     return this.fb.nonNullable.group({
       productId: [item?.productId ?? null as number | null],
-      productName: [item?.productName ?? ''],
+      productName: [item?.productName ?? '', [Validators.required]],
       quantity: [item?.quantity ?? 1, [Validators.required, Validators.min(1)]],
       unitPrice: [item?.unitPrice ?? 0, [Validators.required, Validators.min(0)]],
     });
@@ -180,12 +183,12 @@ export class OrderFormComponent implements OnInit {
     this.items.removeAt(index);
   }
 
-  onProduct(event: Event, index: number): void {
-    const productId = Number((event.target as HTMLSelectElement).value);
+  onProduct(_event: Event, index: number): void {
+    const productId = this.items.at(index).get('productId')?.value;
     const product = this.products().find((p) => p.id === productId);
     this.items.at(index).patchValue({
       productName: product?.name ?? '',
-      unitPrice: product?.basePrice ?? 0,
+      unitPrice: Number(product?.basePrice ?? 0),
     });
   }
 
@@ -202,6 +205,9 @@ export class OrderFormComponent implements OnInit {
   }
 
   save(): void {
+    if (this.form.invalid) {
+      return;
+    }
     const value = this.form.value;
     if (!value.deliveryDate) {
       return;
@@ -223,9 +229,9 @@ export class OrderFormComponent implements OnInit {
       body['client'] = { name: value.clientName, phone: value.clientPhone };
     }
     if (this.id) {
-      this.ordersService.update(this.id, body).subscribe(() => this.router.navigate(['/orders']));
+       this.ordersService.update(this.id, body).subscribe(() => this.router.navigate(['/pedidos']));
     } else {
-      this.ordersService.create(body).subscribe(() => this.router.navigate(['/orders']));
+       this.ordersService.create(body).subscribe(() => this.router.navigate(['/pedidos']));
     }
   }
 }

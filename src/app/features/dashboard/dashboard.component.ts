@@ -41,20 +41,20 @@ import { DashboardService } from './dashboard.service';
         <span class="gate-label text-mute">Producción</span>
         <div class="flex flex-wrap items-center gap-2">
           <span class="band band-ink rounded-sm">
-            <span class="status-dot" style="background:#f7c600"></span>
+            <span class="status-dot" style="background:var(--color-signal)"></span>
             En proceso · {{ inProcess(s) }}
           </span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-ink" aria-hidden="true">
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
           <span class="band band-signal rounded-sm">
-            <span class="status-dot" style="background:#17120a"></span>
+            <span class="status-dot" style="background:var(--color-ink)"></span>
             Entregados · {{ s.deliveredCount }}
           </span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="text-ink" aria-hidden="true">
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
-          <span class="rounded-sm px-3 py-2 text-sm font-bold uppercase tracking-wide text-[#b3261e]">
+          <span class="band band-danger rounded-sm">
             <span class="status-dot"></span>
             Cancelados · {{ s.cancelledCount }}
           </span>
@@ -80,9 +80,9 @@ import { DashboardService } from './dashboard.service';
                 <td>{{ order.client.name }}</td>
                 <td class="font-semibold">\${{ order.totalAmount }}</td>
                 <td><app-status-badge [status]="order.status" /></td>
-                <td class="text-right">
+                <td class="text-left">
                   <a [routerLink]="['/pedidos', order.id]" class="inline-flex items-center gap-1 font-bold text-ink underline decoration-signal decoration-2 underline-offset-4 hover:decoration-ink">
-                    Puerta {{ order.id }}
+                    Pedido {{ order.id }}
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="M5 12h14M13 6l6 6-6 6" />
                     </svg>
@@ -111,6 +111,6 @@ export class DashboardComponent implements OnInit {
   }
 
   inProcess(s: DashboardSummary): number {
-    return s.ordersCount - s.deliveredCount - s.cancelledCount;
+    return Math.max(0, s.ordersCount - s.deliveredCount);
   }
 }

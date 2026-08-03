@@ -11,6 +11,7 @@
   --color-panel: #fffbf0;
   --color-line: #e3d9c2;
   --color-mute: #5f5847;
+  --color-danger: #b3261e;
   --font-sans: 'Public Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
@@ -53,6 +54,11 @@
 .band-ink {
   background: var(--color-ink);
   color: #fff8e6;
+}
+
+.band-danger {
+  background: #fee2e2;
+  color: var(--color-danger);
 }
 
 .sign-panel {
@@ -171,7 +177,7 @@
 }
 
 .btn-danger {
-  background: #b3261e;
+  background: var(--color-danger);
   color: #fff7ed;
 }
 
